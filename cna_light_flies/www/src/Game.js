@@ -2,7 +2,7 @@
 // create BasicGame Class
 Firefly = function(game, pngId, ringPngId)
 {
-    Phaser.Sprite.call(this, game,  game.world.centerX, game.world.centerY, pngId);
+    Phaser.Sprite.call(this, game,  game.world.randomX, game.world.randomY, pngId);
     
     this.anchor.setTo(0.5, 0.5);
     
@@ -12,7 +12,7 @@ Firefly = function(game, pngId, ringPngId)
     game.physics.enable(this, Phaser.Physics.ARCADE);
     this.exists = true;
     game.add.existing(this);
-    this.scale.setTo(0.5, 0.5);
+    this.scale.setTo(0.3, 0.3);
   
     this.body.collideWorldBounds = true;
     this.body.bounce.setTo(1, 1);
@@ -40,7 +40,7 @@ Firefly.prototype.initializeRing = function(game, ringPngId)
     this.ring = game.add.sprite(this.x, this.y, ringPngId);
     game.physics.enable(this.ring, Phaser.Physics.ARCADE);
     this.ring.anchor.setTo(0.5, 0.5);
-    this.ring.scale.setTo(0.5, 0.5);
+    this.ring.scale.setTo(0.3, 0.3);
     this.ring.scaleMax = 1.5;
     this.ring.scaleMin = 0.25;
     this.scaleDirection = 1;
@@ -101,7 +101,7 @@ Firefly.prototype.update = function()
         }
 
         this.ring.scale.setTo(scaleX, scaleY);
-        this.readyForTap = scaleX < 0.5 ? true : false;
+        this.readyForTap = scaleX < 0.3 ? true : false;
         
         // GH: Check if we need to change the movement
         if(this.movementCounter >= this.currentChangeMovementTimer)
@@ -164,7 +164,7 @@ Firefly.prototype.shake = function(delta)
     {
         this.shakeTimer = 0;
         this.readyForTap = false;
-        this.ring.scale.setTo(.51, .51);
+        this.ring.scale.setTo(.31, .31);
         this.scaleDirection = 1;
         this.randomSpeed = this.game.rnd.frac();
         this.randomCount = 0;
@@ -256,9 +256,15 @@ BasicGame.Game.prototype =
 
     create: function () {
         // Add logo to the center of the stage
-        this.fireflyRed = new Firefly(this, 'red_firefly', 'red_ring');
-        this.fireflyBlue = new Firefly(this, 'blue_firefly', 'blue_ring');
-        this.fireflyOrange = new Firefly(this, 'orange_firefly', 'orange_ring');
+        this.fireflyRed =[];
+        this.fireflyBlue =[];
+        this.fireflyOrange =[];
+        for( i = 0; i < 2; i++)
+        {
+            this.fireflyRed.push( new Firefly(this, 'red_firefly', 'red_ring') );
+            this.fireflyBlue.push( new Firefly(this, 'blue_firefly', 'blue_ring') );
+            this.fireflyOrange.push( new Firefly(this, 'orange_firefly', 'orange_ring') );
+        }
     },
 
     gameResized: function (width, height) {
@@ -273,23 +279,29 @@ BasicGame.Game.prototype =
     
     checkAlive: function()
     {
-        if(this.fireflyRed.exists == false)
+        for( i = 0 ; i < 2 ; i++)
         {
-            this.fireflyRed.destroy();
-            this.fireflyRed.ring.destroy();
-            this.fireflyRed = new Firefly(this, 'red_firefly', 'red_ring');
-        }
-        if(this.fireflyBlue.exists == false)
-        {
-            this.fireflyBlue.destroy();
-            this.fireflyBlue.ring.destroy();
-            this.fireflyBlue = new Firefly(this, 'blue_firefly', 'blue_ring');
-        }
-        if(this.fireflyOrange.exists == false)
-        {
-            this.fireflyOrange.destroy();
-            this.fireflyOrange.ring.destroy();
-            this.fireflyOrange = new Firefly(this, 'orange_firefly', 'orange_ring');
+            if(this.fireflyRed[i].exists == false)
+            {
+                this.fireflyRed[i].destroy();
+                this.fireflyRed[i].ring.destroy();
+                this.fireflyRed.splice(i, 1);
+                this.fireflyRed.push( new Firefly(this, 'red_firefly', 'red_ring'));
+            }
+            if(this.fireflyBlue[i].exists == false)
+            {
+                this.fireflyBlue[i].destroy();
+                this.fireflyBlue[i].ring.destroy();
+                this.fireflyBlue.splice(i, 1);
+                this.fireflyBlue.push( new Firefly(this, 'blue_firefly', 'blue_ring'));
+            }
+            if(this.fireflyOrange[i].exists == false)
+            {
+                this.fireflyOrange[i].destroy();
+                this.fireflyOrange[i].ring.destroy();
+                this.fireflyOrange.splice(i, 1);
+                this.fireflyOrange.push( new Firefly(this, 'orange_firefly', 'orange_ring'));
+            }
         }
     }
 
