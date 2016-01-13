@@ -1,9 +1,9 @@
 /* jshint browser:true */
 // create BasicGame Class
-Firefly = function(game, pngId, ringPngId)
+Firefly = function(game, id, pngId, ringPngId)
 {
     Phaser.Sprite.call(this, game,  game.world.randomX, game.world.randomY, pngId);
-    
+    this.id = id;
     this.anchor.setTo(0.5, 0.5);
     
     this.game = game;
@@ -36,7 +36,6 @@ Firefly.prototype.constructor = Firefly;
 
 Firefly.prototype.initializeRing = function(game, ringPngId)
 {
-      
     this.ring = game.add.sprite(this.x, this.y, ringPngId);
     game.physics.enable(this.ring, Phaser.Physics.ARCADE);
     this.ring.anchor.setTo(0.5, 0.5);
@@ -130,6 +129,7 @@ Firefly.prototype.update = function()
         if(this.fadeTimeMax <= this.fadeTimer && this.alpha <= 0)
         {
             this.exists = false;
+            this.game.comboScreen.checkSequence(this.id);
             this.game.checkAlive();
             
             return;
@@ -181,6 +181,77 @@ Firefly.prototype.shake = function(delta)
     }
     this.shakeSkip += delta;
     
+};
+
+ComboScreen = {};
+
+ComboScreen = function(game)
+{
+    Phaser.Group.call(this,  game, game.world, 'ComboScreen', false, true, Phaser.Physics.ARCADE);
+    
+    this.circles = [];
+    this.circlesId = [];
+    this.game = game;
+    game.add.existing(this);
+};
+
+ComboScreen.prototype = Object.create(Phaser.Group.prototype);
+ComboScreen.prototype.constructor = ComboScreen;
+
+
+ComboScreen.prototype.checkSequence = function(id)
+{
+    
+    console.log("trying to destroy id: " + id );
+    console.log("currentIds: " + this.circlesId);
+    if(this.circlesId[0] == id)
+    {
+        this.circlesId.splice(0, 1);
+        this.circles[0].destroy();
+        this.circles.splice(0, 1);
+    }
+};
+
+ComboScreen.prototype.createSequence = function()
+{
+    
+    if(this.circles.length != 0)
+    {
+        return;
+    }
+    
+    maxSequence = this.game.rnd.integerInRange(1,3);
+    for(i = 0; i < maxSequence ; i++)
+    {
+        id = this.game.rnd.integerInRange(0, 2);
+
+        spr = {};
+        switch(id)
+        {
+            case 0:
+                spr = this.game.add.sprite(200 + i * 50, this.game.world.height - 20, 'red_firefly');
+                break;
+            case 1:
+                spr = this.game.add.sprite(200 + i * 50, this.game.world.height - 20, 'blue_firefly');
+                break;
+            case 2:
+                spr = this.game.add.sprite(200 + i * 50, this.game.world.height - 20, 'orange_firefly');    
+                break;
+        }
+
+        spr.scale.set(0.1, 0.1);
+        this.circles.push(spr);
+        this.circlesId.push(id);        
+    }
+
+};
+
+
+ComboScreen.prototype.update = function()
+{
+       
+    this.createSequence();
+  
 };
 
 BasicGame = 
@@ -261,10 +332,12 @@ BasicGame.Game.prototype =
         this.fireflyOrange =[];
         for( i = 0; i < 2; i++)
         {
-            this.fireflyRed.push( new Firefly(this, 'red_firefly', 'red_ring') );
-            this.fireflyBlue.push( new Firefly(this, 'blue_firefly', 'blue_ring') );
-            this.fireflyOrange.push( new Firefly(this, 'orange_firefly', 'orange_ring') );
+            this.fireflyRed.push( new Firefly(this, 0,  'red_firefly', 'red_ring') );
+            this.fireflyBlue.push( new Firefly(this, 1, 'blue_firefly', 'blue_ring') );
+            this.fireflyOrange.push( new Firefly(this, 2, 'orange_firefly', 'orange_ring') );
         }
+        this.comboScreen = new ComboScreen(this);
+        
     },
 
     gameResized: function (width, height) {
@@ -277,6 +350,10 @@ BasicGame.Game.prototype =
 
     },
     
+    update: function()
+    {
+     },
+    
     checkAlive: function()
     {
         for( i = 0 ; i < 2 ; i++)
@@ -286,21 +363,21 @@ BasicGame.Game.prototype =
                 this.fireflyRed[i].destroy();
                 this.fireflyRed[i].ring.destroy();
                 this.fireflyRed.splice(i, 1);
-                this.fireflyRed.push( new Firefly(this, 'red_firefly', 'red_ring'));
+                this.fireflyRed.push( new Firefly(this, 0, 'red_firefly', 'red_ring'));
             }
             if(this.fireflyBlue[i].exists == false)
             {
                 this.fireflyBlue[i].destroy();
                 this.fireflyBlue[i].ring.destroy();
                 this.fireflyBlue.splice(i, 1);
-                this.fireflyBlue.push( new Firefly(this, 'blue_firefly', 'blue_ring'));
+                this.fireflyBlue.push( new Firefly(this, 1, 'blue_firefly', 'blue_ring'));
             }
             if(this.fireflyOrange[i].exists == false)
             {
                 this.fireflyOrange[i].destroy();
                 this.fireflyOrange[i].ring.destroy();
                 this.fireflyOrange.splice(i, 1);
-                this.fireflyOrange.push( new Firefly(this, 'orange_firefly', 'orange_ring'));
+                this.fireflyOrange.push( new Firefly(this, 2, 'orange_firefly', 'orange_ring'));
             }
         }
     }
